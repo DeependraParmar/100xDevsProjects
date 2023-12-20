@@ -1,9 +1,10 @@
-import { User } from "./user";
+import { User } from "./user.js";
 import jwt from "jsonwebtoken";
 const jwtSecret = "eytgndcmvkeo48thdncvh38549ej"
 
 export const isAuthenticated = async(req,res,next) => {
     const {token} = req.cookies;
+
     if(!token){
         return res.status(403).json({
             success: false,
@@ -12,6 +13,6 @@ export const isAuthenticated = async(req,res,next) => {
     }
 
     const verifiedUserId = await jwt.verify(token, jwtSecret);
-    req.user = await User.findOne(verifiedUserId._id);
+    req.user = await User.findById(verifiedUserId._id);
     next();
 }

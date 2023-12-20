@@ -5,11 +5,14 @@ import zod from "zod";
 import brypt from "bcrypt";
 import {User} from "./user.js";
 import {isAuthenticated} from "./isAuthenticated.js";
+import { Task } from "./task.js";
+import cookieParser from "cookie-parser";
 const port = 3000;
 const jwtSecret = "eytgndcmvkeo48thdncvh38549ej"
 
 const app = express();
 app.use(express.json());
+app.use(cookieParser());
 
 const connectDB = () => {
     mongoose.connect("mongodb+srv://100xdevs:BQ8eKZvriLMq03to@cluster0.sxwb9sq.mongodb.net/todoWithAuth?retryWrites=true&w=majority", {});
@@ -27,6 +30,7 @@ const loginSchema = zod.object({
     email: zod.string().email(),
     password: zod.string().min(5).max(20),
 });
+
 
 app.get("/", (req,res,next) => {
     res.send("Welcome to the Ultimate Todo App");
@@ -139,7 +143,71 @@ app.get("/logout", (req,res,next) => {
 
 
 app.post("/addtask",isAuthenticated, async(req,res,next) => {
+    // just getting the title and description from the req.body object
+    const title = req.body.title;
+    const description = req.body.description;
 
+   if(!title){
+        return res.status(411).json({
+            success: false,
+            message: "Title is compulsory"
+        });
+   }
+
+   const task = await Task.create({
+        title: title,
+        description: description,
+        user: req.user._id,
+   });
+   res.status(200).json({
+        success: true,
+        message: "Task Added Successfully",
+   })
+});
+
+app.get("/getalltasks", isAuthenticated, async(req,res,next) => {
+    const tasks = await Task.find({user: req.user._id});
+    res.status(200).json({
+        success: true,
+        tasks: tasks
+    })
+});
+
+app.put("/updatetaskstatus", isAuthenticated, async(req,res,next) => {
+    const task = await Task.findById(req.query.id);
+
+    if(!task){
+        return res.status(411).json({
+            success: false,
+            message: "Task Not Found!!"
+        });
+    }
+
+    task.isDone = !task.isDone;
+    await task.save();
+
+    res.status(200).json({
+        success: true,
+        message: "Task Status Updated",
+        taskStatus: task.isDone,
+    })
+})
+
+app.delete("/deletetask", isAuthenticated, async(req,res,next) => {
+    const task = await Task.findById(req.query.id);
+
+    if(!task){
+        return res.status(411).json({
+            success: false,
+            message: "Task Not Found!"
+        });
+    }
+
+    await task.deleteOne();
+    return res.status(200).json({
+        success: true,
+        message: "Task Deleted Successfully"
+    })
 })
 
 app.listen(port, () => {
