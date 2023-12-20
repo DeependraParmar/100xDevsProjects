@@ -78,7 +78,7 @@ app.post("/signin", async(req,res,next) => {
     // here we go, finally responded back 
     res.status(200).json({
         success: true,
-        message: `Hello ${user.name}, you can login now.`
+        message: `Hello ${user.name}👋, you can login now.`
     })
 });
 
