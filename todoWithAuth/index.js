@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import zod from "zod";
 import brypt from "bcrypt";
 import {User} from "./user.js";
+import {isAuthenticated} from "./isAuthenticated.js";
 const port = 3000;
 const jwtSecret = "eytgndcmvkeo48thdncvh38549ej"
 
@@ -134,8 +135,12 @@ app.get("/logout", (req,res,next) => {
         success: true,
         message: "Logged Out Successfully",
     })
-})
+});
 
+
+app.post("/addtask",isAuthenticated, async(req,res,next) => {
+
+})
 
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
